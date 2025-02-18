@@ -221,6 +221,7 @@ class Board:
             '-Wno-redundant-decls',
             '-Wno-unknown-pragmas',
             '-Wno-trigraphs',
+            '-Wno-unknown-warning-option',
             '-Werror=shadow',
             '-Werror=return-type',
             '-Werror=unused-result',
@@ -340,6 +341,7 @@ class Board:
             '-Wno-redundant-decls',
             '-Wno-unknown-pragmas',
             '-Wno-expansion-to-defined',
+            '-Wno-unknown-warning-option',
             '-Werror=cast-align',
             '-Werror=attributes',
             '-Werror=format-security',
@@ -730,7 +732,7 @@ class sitl(Board):
         cfg.check_librt(env)
         cfg.check_feenableexcept()
 
-        env.LINKFLAGS += ['-pthread',]
+        env.LINKFLAGS += ['-pthread', '-Wl,-dead_strip,-ld_classic']
 
         if cfg.env.DEBUG and 'clang++' in cfg.env.COMPILER_CXX and cfg.options.asan:
              env.LINKFLAGS += ['-fsanitize=address']

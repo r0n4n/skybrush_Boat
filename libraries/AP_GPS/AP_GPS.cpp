@@ -1429,6 +1429,14 @@ void AP_GPS::inject_data(const uint8_t *data, uint16_t len)
     } else {
         inject_data(_inject_to, data, len);
     }
+    
+    // Log that we have injected some data to the GPS. We do this only for
+    // RTCM3 packets, which we can identify from the preamble.
+    if (len > 5 && data[0] == 0xD3) {
+        /* 12 bits from byte 3 encode the message type */
+        uint16_t type = (data[3] << 4) | (data[4] >> 4);
+        Write_GPS_RTK(type, len);
+    }
 }
 
 void AP_GPS::inject_data(uint8_t instance, const uint8_t *data, uint16_t len)
