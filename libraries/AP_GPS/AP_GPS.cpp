@@ -2408,7 +2408,18 @@ void AP_GPS::Write_GPS(uint8_t i)
     AP::logger().WriteBlock(&pkt2, sizeof(pkt2));
 }
 #endif
-
+// Logging support:
+// Write a log entry that logs the injection of an RTK correction packet
+void AP_GPS::Write_GPS_RTK(uint16_t type, uint16_t length)
+{
+    struct log_GPSRTKPacket pkt {
+        LOG_PACKET_HEADER_INIT(LOG_GPS_RTK_PACKET_MSG),
+        time_us : AP_HAL::micros64(),
+        type    : type,
+        length  : length
+    };
+    AP::logger().WriteBlock(&pkt, sizeof(pkt));
+}
 /*
   get GPS based yaw
  */
