@@ -52,6 +52,8 @@ void RC_Channel_Rover::init_aux_function(const aux_func_t ch_option, const AuxSw
     case AUX_FUNC::SMART_RTL:
     case AUX_FUNC::STEERING:
     case AUX_FUNC::WIND_VANE_DIR_OFSSET:
+    case AUX_FUNC::DRONE_SHOW_START:
+    case AUX_FUNC::DRONE_SHOW_CRTL:
         break;
     case AUX_FUNC::SAILBOAT_MOTOR_3POS:
         do_aux_function_sailboat_motor_3pos(ch_flag);
@@ -259,6 +261,33 @@ bool RC_Channel_Rover::do_aux_function(const aux_func_t ch_option, const AuxSwit
     case AUX_FUNC::WALKING_HEIGHT:
     case AUX_FUNC::WIND_VANE_DIR_OFSSET:
         break;
+
+
+#if MODE_DRONE_SHOW_ENABLED == ENABLED
+    case AUX_FUNC::DRONE_SHOW_START:
+        // Switch is ignored when we are not in the droneshow mode, or when
+        // we have booted less than 5 seconds ago. This is because the
+        // aux switch function is triggered by ArduRover right after boot
+        // if the RC is already turned on and the switch is in the high
+        // position.
+        if (rover.flightmode == &rover.mode_drone_show && AP_HAL::millis() > 5000) {
+            AP::logger().Write_Event(LogEvent::DRONE_SHOW_START);
+            rover.g2.drone_show_manager.handle_rc_start_switch();
+        }
+        break;
+
+    case AUX_FUNC::DRONE_SHOW_CRTL:
+        // Switch is ignored when we are not in the droneshow mode, or when
+        // we have booted less than 5 seconds ago. This is because the
+        // aux switch function is triggered by ArduRover right after boot
+        // if the RC is already turned on and the switch is in the high
+        // position.
+        if (rover.flightmode == &rover.mode_drone_show && AP_HAL::millis() > 5000) {
+            AP::logger().Write_Event(LogEvent::DRONE_SHOW_CRTL);
+            rover.g2.drone_show_manager.handle_rc_collective_rtl_switch();
+        }
+        break;
+#endif
 
     default:
         return RC_Channel::do_aux_function(ch_option, ch_flag);

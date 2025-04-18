@@ -73,13 +73,25 @@
 #include "RC_Channel.h"                  // RC Channel Library
 
 #include "mode.h"
+#if MODE_DRONE_SHOW_ENABLED == ENABLED
+ #include "mode_drone_show.h"
+ #if AP_FENCE_ENABLED
+  #include <AC_HardFence/AC_HardFence.h>
+ #endif
+#endif
 
+#if COLLMOT_EXTENSIONS_ENABLED == ENABLED
+#include "collmot_flockctrl.h"
+#endif
 class Rover : public AP_Vehicle {
 public:
     friend class GCS_MAVLINK_Rover;
     friend class Parameters;
     friend class ParametersG2;
     friend class AP_Rally_Rover;
+#if MODE_DRONE_SHOW_ENABLED == ENABLED
+    friend class AC_DroneShowManager_Rover;
+#endif
     friend class AP_Arming_Rover;
 #if ADVANCED_FAILSAFE == ENABLED
     friend class AP_AdvancedFailsafe_Rover;
@@ -111,7 +123,9 @@ public:
     friend class RC_Channels_Rover;
 
     friend class Sailboat;
-
+#if MODE_DRONE_SHOW_ENABLED == ENABLED
+    friend class ModeDroneShow;
+#endif
     Rover(void);
 
 private:
@@ -187,6 +201,10 @@ private:
     AP_Mount camera_mount;
 #endif
 
+#if COLLMOT_EXTENSIONS_ENABLED == ENABLED
+    // CollMot-specific modifications
+    CollMotFlockCtrl collmot;
+#endif
     // true if initialisation has completed
     bool initialised;
 
@@ -263,6 +281,10 @@ private:
     ModeDock mode_dock;
 #endif
 
+#if MODE_DRONE_SHOW_ENABLED == ENABLED
+    ModeDroneShow mode_drone_show;
+#endif
+
     // cruise throttle and speed learning
     typedef struct {
         LowPassFilterFloat speed_filt{2.0f};
@@ -330,7 +352,12 @@ private:
 
     // fence.cpp
     void fence_check();
+    void fence_and_hard_fence_check();
 
+    // hard_fence.cpp
+#if MODE_DRONE_SHOW_ENABLED == ENABLED && AP_FENCE_ENABLED
+    void hard_fence_check();
+#endif
     // GCS_Mavlink.cpp
     void send_wheel_encoder_distance(mavlink_channel_t chan);
 

@@ -30,7 +30,7 @@ MAV_MODE GCS_MAVLINK_Rover::base_mode() const
         _base_mode |= MAV_MODE_FLAG_MANUAL_INPUT_ENABLED;
     }
 
-    if (rover.control_mode->is_autopilot_mode()) {
+    if (rover.control_mode->is_autopilot_mode()) || (rover.control_mode == Mode::Number::DRONE_SHOW)  {
         _base_mode |= MAV_MODE_FLAG_GUIDED_ENABLED;
     }
 
@@ -389,6 +389,13 @@ bool GCS_MAVLINK_Rover::try_send_message(enum ap_message id)
                 oadb->send_adsb_vehicle(chan, interval_ms);
             }
         }
+        break;
+    }
+    case MSG_DRONE_SHOW_STATUS: {
+#if MODE_DRONE_SHOW_ENABLED == ENABLED
+                CHECK_PAYLOAD_SIZE(DATA16);
+                rover.g2.drone_show_manager.send_drone_show_status(chan);
+#endif
         break;
     }
 
