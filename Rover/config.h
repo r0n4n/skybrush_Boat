@@ -95,3 +95,6 @@
  #define OSD_ENABLED DISABLED
 #endif
 
+#ifndef MODE_GUIDED_ENABLED
+ #define MODE_GUIDED_ENABLED   ENABLED            // enable guided mode support
+#endif

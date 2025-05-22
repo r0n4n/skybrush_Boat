@@ -90,7 +90,7 @@ public:
     friend class ParametersG2;
     friend class AP_Rally_Rover;
 #if MODE_DRONE_SHOW_ENABLED == ENABLED
-    friend class AC_DroneShowManager_Rover;
+    friend class AC_DroneShowManager_Copter;
 #endif
     friend class AP_Arming_Rover;
 #if ADVANCED_FAILSAFE == ENABLED

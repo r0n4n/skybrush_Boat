@@ -435,7 +435,7 @@ public:
 #if MODE_DRONE_SHOW_ENABLED == ENABLED
     // we need a pointer to the mode for the G2 table
     void *mode_drone_show_ptr;
-    AC_DroneShowManager_Rover drone_show_manager;
+    AC_DroneShowManager_Copter drone_show_manager;
 #endif
     // position controller
     AR_PosControl pos_control;
