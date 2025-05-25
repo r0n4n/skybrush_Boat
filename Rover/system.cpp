@@ -164,7 +164,7 @@ void Rover::init_ardupilot()
     {
         // switch to show mode if needed
         if (g2.drone_show_manager.should_switch_to_show_mode_at_boot()) {
-            initial_mode = Mode::Number::DRONE_SHOW;
+            initial_mode = mode_from_mode_num(Mode::Number::DRONE_SHOW);
         }
         else
         {
