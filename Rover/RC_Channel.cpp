@@ -270,7 +270,7 @@ bool RC_Channel_Rover::do_aux_function(const aux_func_t ch_option, const AuxSwit
         // aux switch function is triggered by ArduRover right after boot
         // if the RC is already turned on and the switch is in the high
         // position.
-        if (rover.flightmode == &rover.mode_drone_show && AP_HAL::millis() > 5000) {
+        if (rover.control_mode == &rover.mode_drone_show && AP_HAL::millis() > 5000) {
             AP::logger().Write_Event(LogEvent::DRONE_SHOW_START);
             rover.g2.drone_show_manager.handle_rc_start_switch();
         }
@@ -282,7 +282,7 @@ bool RC_Channel_Rover::do_aux_function(const aux_func_t ch_option, const AuxSwit
         // aux switch function is triggered by ArduRover right after boot
         // if the RC is already turned on and the switch is in the high
         // position.
-        if (rover.flightmode == &rover.mode_drone_show && AP_HAL::millis() > 5000) {
+        if (rover.control_mode == &rover.mode_drone_show && AP_HAL::millis() > 5000) {
             AP::logger().Write_Event(LogEvent::DRONE_SHOW_CRTL);
             rover.g2.drone_show_manager.handle_rc_collective_rtl_switch();
         }
