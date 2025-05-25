@@ -34,7 +34,7 @@ public:
 
     //bool requires_GPS() const override { return true; }
     //bool allows_arming(AP_Arming::Method method) const override;
-    //bool is_autopilot() const override { return true; }
+    bool is_autopilot_mode() const override { return true; }
     
     /* in_guided_mode() should not return true because that would allow
      * scripting or GCS commands to mess around with the show execution */

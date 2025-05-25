@@ -139,13 +139,10 @@ void ModeDroneShow::update()
 // Checks changes in relevant parameter values and reports them to the console
 void ModeDroneShow::check_changes_in_parameters()
 {
-    static DroneShowAuthorization last_seen_authorization;
+    static bool last_seen_authorization;
     static uint64_t last_seen_start_time;
-    DroneShowAuthorization current_authorization;
-    uint64_t current_start_time;
-
-    current_start_time = rover.g2.drone_show_manager.get_start_time_epoch_undefined();
-    current_authorization = rover.g2.drone_show_manager.get_authorization_scope();
+    bool current_authorization = rover.g2.drone_show_manager.has_authorization_to_start();
+    uint64_t current_start_time = rover.g2.drone_show_manager.get_start_time_epoch_undefined();
 
     if (current_start_time != last_seen_start_time) {
         last_seen_start_time = current_start_time;
@@ -468,19 +465,18 @@ void ModeDroneShow::error_run()
     return copter.g2.drone_show_manager.get_time_until_landing_sec() <= 0;
 }*/
 
+
 // Handler function that is called when the authorization state of the show has
 // changed in the drone show manager
 void ModeDroneShow::notify_authorization_changed()
 {
-    if (
-        _stage == DroneShow_WaitForStartTime &&
-        rover.g2.drone_show_manager.has_authorization()
-    ) {
+    if (_stage == DroneShow_WaitForStartTime && rover.g2.drone_show_manager.has_authorization_to_start()) {
         // Update home position and reset AGL to zero when the show is
         // authorized and we are in the "waiting for start time" phase
         try_to_update_home_position();
     }
 }
+
 
 // Handler function that is called when the start time of the show has changed in the
 // drone show manager
