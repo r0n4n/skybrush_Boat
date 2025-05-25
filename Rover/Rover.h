@@ -48,6 +48,7 @@
 #if AP_EXTERNAL_CONTROL_ENABLED
 #include "AP_ExternalControl_Rover.h"
 #endif
+#include <AC_WPNav/AC_WPNav.h>              // ArduCopter waypoint navigation library
 
 // Configuration
 #include "defines.h"
@@ -149,6 +150,8 @@ private:
     RC_Channel *channel_roll;
     RC_Channel *channel_pitch;
     RC_Channel *channel_walking_height;
+
+    AC_WPNav *wp_nav;
 
 #if HAL_LOGGING_ENABLED
     AP_Logger logger;
