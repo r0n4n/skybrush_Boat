@@ -16,9 +16,9 @@ bool AC_DroneShowManager_Copter::get_current_location(Location& loc) const
 
 bool AC_DroneShowManager_Copter::get_current_relative_position_NED_origin(Vector3f& vec) const
 {
-    //return rover.ahrs.get_relative_position_NED_origin(vec);
-    rover.current_loc.get_vector_from_origin_NEU(vec);
-    return rover.have_position;
+    return rover.ahrs.get_relative_position_NED_origin(vec);
+    //rover.current_loc.get_vector_from_origin_NEU(vec);
+    //return rover.have_position;
 }
 
 void AC_DroneShowManager_Copter::_request_switch_to_show_mode()
@@ -505,7 +505,9 @@ bool ModeDroneShow::send_guided_mode_command_during_performance()
 
         // set desired speed in m/s
         rover.mode_guided.set_desired_speed(command.vel[0]) ;
-        rover.mode_guided.set_desired_location(desired_destination);
+        if (!rover.mode_guided.set_desired_location(desired_destination)){
+            return false;
+        }
 
 
         rover.g2.drone_show_manager.notify_guided_mode_command_sent(command);
