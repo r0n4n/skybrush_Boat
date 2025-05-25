@@ -30,7 +30,7 @@ MAV_MODE GCS_MAVLINK_Rover::base_mode() const
         _base_mode |= MAV_MODE_FLAG_MANUAL_INPUT_ENABLED;
     }
 
-    if (rover.control_mode->is_autopilot_mode()) || (rover.control_mode == Mode::Number::DRONE_SHOW)  {
+    if (rover.control_mode->is_autopilot_mode() || (rover.control_mode->mode_number() == Mode::Number::DRONE_SHOW))  {
         _base_mode |= MAV_MODE_FLAG_GUIDED_ENABLED;
     }
 
