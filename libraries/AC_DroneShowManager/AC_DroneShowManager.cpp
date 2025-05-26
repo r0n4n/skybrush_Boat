@@ -1052,9 +1052,9 @@ bool AC_DroneShowManager::notify_takeoff_attempt()
 bool AC_DroneShowManager::reload_or_clear_show(bool do_clear)
 {
     // Don't reload or clear the show if the motors are armed
-    if (AP::motors()->armed()) {
+    /*if (AP::motors()->armed()) { // commented for testing 
         return false;
-    }
+    }*/
 
     if (do_clear) {
         if (AP::FS().unlink(SHOW_FILE)) {

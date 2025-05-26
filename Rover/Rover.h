@@ -33,6 +33,7 @@
 #include <AP_RPM/AP_RPM.h>                          // RPM input library
 #include <AP_Scheduler/AP_Scheduler.h>              // main loop scheduler
 #include <AP_Vehicle/AP_Vehicle.h>                  // needed for AHRS build
+#include <AP_Motors/AP_Motors.h>            // AP Motors library
 #include <AP_WheelEncoder/AP_WheelEncoder.h>
 #include <AP_WheelEncoder/AP_WheelRateControl.h>
 #include <AP_Logger/AP_Logger.h>
@@ -214,6 +215,8 @@ private:
     // This is the state of the flight control system
     // There are multiple states defined such as MANUAL, AUTO, ...
     Mode *control_mode;
+
+    AP_MotorsMulticopter *motors;
 
     // Used to maintain the state of the previous control switch position
     // This is set to -1 when we need to re-read the switch
