@@ -732,16 +732,6 @@ class sitl(Board):
         cfg.check_librt(env)
         cfg.check_feenableexcept()
 
-        if cfg.env.DEST_OS == 'darwin':
-            env.LINKFLAGS += [
-                '-Wl,-dead_strip',
-            ]
-        else:
-            env.LINKFLAGS += [
-                '-fno-exceptions',
-                '-Wl,--gc-sections',
-            ]
-
         env.LINKFLAGS += ['-pthread']
 
         if cfg.env.DEBUG and 'clang++' in cfg.env.COMPILER_CXX and cfg.options.asan:

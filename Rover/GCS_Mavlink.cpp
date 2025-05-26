@@ -717,6 +717,8 @@ MAV_RESULT GCS_MAVLINK_Rover::handle_command_int_packet(const mavlink_command_in
         return handle_command_nav_set_yaw_speed(packet, msg);
 #endif
 
+
+
     default:
         return GCS_MAVLINK::handle_command_int_packet(packet, msg);
     }
@@ -1151,3 +1153,16 @@ uint8_t GCS_MAVLINK_Rover::high_latency_wind_direction() const
     return 0;
 }
 #endif // HAL_HIGH_LATENCY2_ENABLED
+
+void GCS_MAVLINK_Rover::initialise_custom_message_intervals()
+{
+#if MODE_DRONE_SHOW_ENABLED == ENABLED
+    // In drone show mode, we start some additional telemetry automatically at
+    // startup so the GCS does not have to spend time on setting it up.
+    // 500000 us = 0.5 sec, i.e. 2 Hz
+    set_message_interval(MAVLINK_MSG_ID_DATA16, 500000);
+    set_message_interval(MAVLINK_MSG_ID_GLOBAL_POSITION_INT, 500000);
+    set_message_interval(MAVLINK_MSG_ID_SYS_STATUS, 1000000);
+    set_message_interval(MAVLINK_MSG_ID_GPS_RAW_INT, 1000000);
+#endif
+}
