@@ -28,6 +28,10 @@ public:
         SMART_RTL    = 12,
         GUIDED       = 15,
         INITIALISING = 16,
+        
+        // Mode number 127 reserved for the "drone show mode" in the Skybrush
+        // fork at https://github.com/skybrush-io/ardupilot
+        DRONE_SHOW =   127, // Pre-programmed drone light show
     };
 
     // Constructor
@@ -589,6 +593,11 @@ protected:
         uint32_t start_time_ms; // system time in milliseconds that control was handed to the external computer
         Location start_loc; // starting location for checking horiz_max limit
     } limit;
+
+#if MODE_DRONE_SHOW_ENABLED == ENABLED
+    // Allows the drone show mode to access our internals for reporting purposes
+    friend class ModeDroneShow;
+#endif
 };
 
 
@@ -699,6 +708,11 @@ protected:
     bool send_notification; // used to send one time notification to ground station
     bool _loitering;        // true if loitering at end of RTL
 
+private:
+#if MODE_DRONE_SHOW_ENABLED == ENABLED
+    // Allows the drone show mode to access our internals for reporting purposes
+    friend class ModeDroneShow;
+#endif
 };
 
 class ModeSmartRTL : public Mode
@@ -902,4 +916,8 @@ protected:
     bool _docking_complete = false;     // flag to mark docking complete when we are close enough to the dock
     bool _loitering = false; // true if we are loitering after mission completion
 };
+#endif
+
+#if MODE_DRONE_SHOW_ENABLED == ENABLED
+ # include "mode_drone_show.h"
 #endif

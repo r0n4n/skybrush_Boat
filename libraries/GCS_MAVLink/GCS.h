@@ -874,6 +874,11 @@ private:
     void initialise_message_intervals_for_stream(GCS_MAVLINK::streams id);
     // call initialise_message_intervals_for_stream on every stream:
     void initialise_message_intervals_from_streamrates();
+    // hook function to allow customization of message intervals in derived
+    // classes.
+    // TODO(ntamas): migrate things to configuring stream rates from ROMFS
+    // instead using initialise_message_intervals_from_config_files()
+    virtual void initialise_custom_message_intervals() {};
     // boolean that indicated that message intervals have been set
     // from streamrates:
     bool deferred_messages_initialised;

@@ -59,6 +59,17 @@
 # define MODE_FOLLOW_ENABLED AP_FOLLOW_ENABLED
 #endif
 
+//////////////////////////////////////////////////////////////////////////////
+// Drone show - perform a timed waypoint flight with LED lights
+#ifndef MODE_DRONE_SHOW_ENABLED
+# define MODE_DRONE_SHOW_ENABLED ENABLED
+#endif
+
+//////////////////////////////////////////////////////////////////////////////
+// CollMot-specific extensions to stock firmware
+#ifndef COLLMOT_EXTENSIONS_ENABLED
+# define COLLMOT_EXTENSIONS_ENABLED ENABLED
+#endif
 
 //////////////////////////////////////////////////////////////////////////////
 // Developer Items
@@ -84,3 +95,6 @@
  #define OSD_ENABLED DISABLED
 #endif
 
+#ifndef MODE_GUIDED_ENABLED
+ #define MODE_GUIDED_ENABLED   ENABLED            // enable guided mode support
+#endif

@@ -98,6 +98,9 @@ public:
         k_param_gcs5,
         k_param_gcs6,
 
+        // DroneShow adding
+        k_param_collmot = 134,   // hopefully this won't clash with upstream for a while
+
         //
         // 130: Sensor parameters
         //
@@ -428,6 +431,12 @@ public:
     AP_Torqeedo torqeedo;
 #endif
 
+
+#if MODE_DRONE_SHOW_ENABLED == ENABLED
+    // we need a pointer to the mode for the G2 table
+    void *mode_drone_show_ptr;
+    AC_DroneShowManager_Copter drone_show_manager;
+#endif
     // position controller
     AR_PosControl pos_control;
 

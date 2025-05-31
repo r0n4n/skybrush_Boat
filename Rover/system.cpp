@@ -54,6 +54,11 @@ void Rover::init_ardupilot()
     osd.init();
 #endif
 
+#if MODE_DRONE_SHOW_ENABLED == ENABLED
+    // early initialization steps of drone show subsystem
+    g2.drone_show_manager.early_init();
+#endif
+
 #if HAL_LOGGING_ENABLED
     log_init();
 #endif
@@ -140,11 +145,35 @@ void Rover::init_ardupilot()
 
     startup_ground();
 
+
+#if MODE_DRONE_SHOW_ENABLED == ENABLED
+    // initialise drone show subsystem
+    g2.drone_show_manager.init(wp_nav);
+
+    // initialise hard fence
+    g2.drone_show_manager.hard_fence.init();
+#endif
+
     Mode *initial_mode = mode_from_mode_num((enum Mode::Number)g.initial_mode.get());
+
     if (initial_mode == nullptr) {
         initial_mode = &mode_initializing;
     }
+#if MODE_DRONE_SHOW_ENABLED == ENABLED
+    else
+    {
+        // switch to show mode if needed
+        if (g2.drone_show_manager.should_switch_to_show_mode_at_boot()) {
+            initial_mode = mode_from_mode_num(Mode::Number::DRONE_SHOW);
+        }
+        else
+        {
+            set_mode(*initial_mode, ModeReason::INITIALISED);
+        }
+    }
+#else
     set_mode(*initial_mode, ModeReason::INITIALISED);
+#endif
 
     // initialise rc channels
     rc().convert_options(RC_Channel::AUX_FUNC::ARMDISARM_UNUSED, RC_Channel::AUX_FUNC::ARMDISARM);

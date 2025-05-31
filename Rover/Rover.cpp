@@ -116,9 +116,9 @@ const AP_Scheduler::Task Rover::scheduler_tasks[] = {
 #if AP_CAMERA_ENABLED
     SCHED_TASK_CLASS(AP_Camera,           &rover.camera,           update,         50,  200,  78),
 #endif
-    SCHED_TASK(gcs_failsafe_check,     10,    200,  81),
-    SCHED_TASK(fence_check,            10,    200,  84),
-    SCHED_TASK(ekf_check,              10,    100,  87),
+    SCHED_TASK(gcs_failsafe_check,          10,    200,  81),
+    SCHED_TASK(fence_and_hard_fence_check,  10,    200,  84),
+    SCHED_TASK(ekf_check,                   10,    100,  87),
     SCHED_TASK_CLASS(ModeSmartRTL,        &rover.mode_smartrtl,    save_position,   3,  200,  90),
     SCHED_TASK(one_second_loop,         1,   1500,  96),
 #if HAL_SPRAYER_ENABLED
@@ -142,6 +142,9 @@ const AP_Scheduler::Task Rover::scheduler_tasks[] = {
     SCHED_TASK(cruise_learn_update,    50,    200, 126),
 #if ADVANCED_FAILSAFE == ENABLED
     SCHED_TASK(afs_fs_check,           10,    200, 129),
+#endif
+#if MODE_DRONE_SHOW_ENABLED == ENABLED
+    SCHED_TASK_CLASS(AC_DroneShowManager, (AC_DroneShowManager*)&rover.g2.drone_show_manager, update, 50, 100, 130),
 #endif
 };
 
@@ -524,6 +527,20 @@ bool Rover::get_wp_crosstrack_error_m(float &xtrack_error) const
     return true;
 }
 
+// check fence and hard fence
+#if AP_FENCE_ENABLED
+void Rover::fence_and_hard_fence_check(void)
+{
+    fence_check();
+#if MODE_DRONE_SHOW_ENABLED == ENABLED
+    // also check whether we have breached the fence for long enough to
+    // warrant a motor shutdown. This must be called after fence_check()
+    // to ensure that the breaches have already been updated in the fence
+    // object
+    hard_fence_check();
+#endif
+}
+#endif
 
 Rover rover;
 AP_Vehicle& vehicle = rover;

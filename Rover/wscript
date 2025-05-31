@@ -3,6 +3,18 @@
 
 def build(bld):
     vehicle = bld.path.name
+
+    bld.stlib(
+        name='libskybrush',
+        source=(
+bld.path.parent.ant_glob('modules/libskybrush/src/**/*.c') +
+bld.path.parent.ant_glob('modules/libskybrush/src/**/*.cpp')
+        ),
+        target='skybrush',
+        defines=['NDEBUG'],
+        output_dir=bld.bldnode.find_or_declare('modules/libskybrush').abspath()
+    )
+
     bld.ap_stlib(
         name=vehicle + '_libs',
         ap_vehicle=vehicle,
@@ -18,6 +30,8 @@ def build(bld):
             'AP_WheelEncoder',
             'AP_SmartRTL',
             'AC_AttitudeControl',
+            'AC_DroneShowManager',
+            'AC_HardFence',
             'AP_LTM_Telem',
             'AP_Devo_Telem',
             'AP_Follow',
@@ -28,6 +42,7 @@ def build(bld):
             'AC_PrecLand',
             'AP_IRLock',
         ],
+        use='libskybrush'
     )
 
     bld.ap_program(

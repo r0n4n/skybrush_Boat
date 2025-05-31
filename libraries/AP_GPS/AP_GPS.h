@@ -789,6 +789,7 @@ private:
 
     // logging support
     void Write_GPS(uint8_t instance);
+    void Write_GPS_RTK(uint16_t type, uint16_t length);
 
 #if AP_GPS_RTCM_DECODE_ENABLED
     /*
