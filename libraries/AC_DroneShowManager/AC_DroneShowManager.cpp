@@ -1745,6 +1745,9 @@ bool AC_DroneShowManager::_load_show_file_from_storage()
                 );
                 success = true;
             }
+            else if APM_BUILD_TYPE(APM_BUILD_Rover){
+                success = true;
+            }
             else
             {
                 hal.console->printf("Takeoff or landing time is invalid!\n");

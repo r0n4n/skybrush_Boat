@@ -8,6 +8,7 @@
 #include <AP_Math/AP_Math.h>
 #include <AP_Notify/RGBLed.h>
 #include <AP_Param/AP_Param.h>
+#include <AP_Vehicle/AP_Vehicle_Type.h>
 
 #include <AC_HardFence/AC_HardFence.h>
 #include <AC_WPNav/AC_WPNav.h>
