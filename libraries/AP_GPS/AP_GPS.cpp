@@ -1325,7 +1325,7 @@ void AP_GPS::update_primary(void)
 #endif  // GPS_MAX_RECEIVERS > 1
 
 #if HAL_GCS_ENABLED
-void AP_GPS::handle_gps_inject(const mavlink_message_t &msg)
+void AP_GPS::handle_gps_inject(mavlink_channel_t chan, const mavlink_message_t &msg)
 {
     mavlink_gps_inject_data_t packet;
     mavlink_msg_gps_inject_data_decode(&msg, &packet);
@@ -1335,7 +1335,7 @@ void AP_GPS::handle_gps_inject(const mavlink_message_t &msg)
         return;
     }
 
-    handle_gps_rtcm_fragment(0, packet.data, packet.len);
+    handle_gps_rtcm_fragment(chan, 0, packet.data, packet.len);
 }
 
 /*
@@ -1349,7 +1349,7 @@ void AP_GPS::handle_msg(mavlink_channel_t chan, const mavlink_message_t &msg)
         handle_gps_rtcm_data(chan, msg);
         break;
     case MAVLINK_MSG_ID_GPS_INJECT_DATA:
-        handle_gps_inject(msg);
+        handle_gps_inject(chan, msg);
         break;
     default: {
         uint8_t i;
@@ -1428,6 +1428,14 @@ void AP_GPS::inject_data(const uint8_t *data, uint16_t len)
         }
     } else {
         inject_data(_inject_to, data, len);
+    }
+
+    // Log that we have injected some data to the GPS. We do this only for
+    // RTCM3 packets, which we can identify from the preamble.
+    if (len > 5 && data[0] == 0xD3) {
+        /* 12 bits from byte 3 encode the message type */
+        uint16_t type = (data[3] << 4) | (data[4] >> 4);
+        Write_GPS_RTK(type, len);
     }
 }
 
@@ -1600,10 +1608,14 @@ bool AP_GPS::blend_health_check() const
 /*
    re-assemble fragmented RTCM data
  */
-void AP_GPS::handle_gps_rtcm_fragment(uint8_t flags, const uint8_t *data, uint8_t len)
+void AP_GPS::handle_gps_rtcm_fragment(mavlink_channel_t chan, uint8_t flags, const uint8_t *data, uint8_t len)
 {
     if ((flags & 1) == 0) {
-        // it is not fragmented, pass direct
+        // it is not fragmented, pass direct.
+        GCS_MAVLINK* gcs_chan = gcs().chan(chan);
+        if (gcs_chan != nullptr) {
+            gcs_chan->rtcm_message_counter().notify();
+        }
         inject_data(data, len);
         return;
     }
@@ -1673,6 +1685,11 @@ void AP_GPS::handle_gps_rtcm_fragment(uint8_t flags, const uint8_t *data, uint8_
         inject_data(rtcm_buffer->buffer, rtcm_buffer->total_length);
         rtcm_buffer->fragment_count = 0;
         rtcm_buffer->fragments_received = 0;
+
+        GCS_MAVLINK* gcs_chan = gcs().chan(chan);
+        if (gcs_chan != nullptr) {
+            gcs_chan->rtcm_message_counter().notify();
+        }
     }
 }
 
@@ -1706,7 +1723,7 @@ void AP_GPS::handle_gps_rtcm_data(mavlink_channel_t chan, const mavlink_message_
     }
 #endif
 
-    handle_gps_rtcm_fragment(packet.flags, packet.data, packet.len);
+    handle_gps_rtcm_fragment(chan, packet.flags, packet.data, packet.len);
 }
 
 #if AP_GPS_RTCM_DECODE_ENABLED
@@ -1764,6 +1781,11 @@ bool AP_GPS::parse_rtcm_injection(mavlink_channel_t chan, const mavlink_gps_rtcm
 
             if (buf != nullptr && len > 0) {
                 inject_data(buf, len);
+
+                GCS_MAVLINK* gcs_chan = gcs().chan(chan);
+                if (gcs_chan != nullptr) {
+                    gcs_chan->rtcm_message_counter().notify();
+                }
             }
             rtcm.parsers[chan]->reset();
         }
@@ -2400,6 +2422,19 @@ void AP_GPS::Write_GPS(uint8_t i)
     AP::logger().WriteBlock(&pkt2, sizeof(pkt2));
 }
 #endif
+
+// Logging support:
+// Write a log entry that logs the injection of an RTK correction packet
+void AP_GPS::Write_GPS_RTK(uint16_t type, uint16_t length)
+{
+    struct log_GPSRTKPacket pkt {
+        LOG_PACKET_HEADER_INIT(LOG_GPS_RTK_PACKET_MSG),
+        time_us : AP_HAL::micros64(),
+        type    : type,
+        length  : length
+    };
+    AP::logger().WriteBlock(&pkt, sizeof(pkt));
+}
 
 /*
   get GPS based yaw

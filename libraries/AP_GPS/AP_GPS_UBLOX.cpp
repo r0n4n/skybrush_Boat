@@ -277,6 +277,14 @@ AP_GPS_UBLOX::_request_next_config(void)
         return;
     }
 
+#ifdef COLLMOT_HACKS_ENTRON_300
+    // Don't spin around and keep on sending messages when we are apparently
+    // done with the autoconfiguration
+    if (!_unconfigured_messages) {
+        return;
+    }
+#endif
+
     // Ensure there is enough space for the largest possible outgoing message
     if (port->txspace() < (uint16_t)(sizeof(struct ubx_header)+sizeof(struct ubx_cfg_nav_rate)+2)) {
         // not enough space - do it next time
@@ -991,6 +999,28 @@ bool
 AP_GPS_UBLOX::_parse_gps(void)
 {
     if (_class == CLASS_ACK) {
+
+#ifdef COLLMOT_HACKS_ENTRON_300
+        if (_msg_id == MSG_ACK_NACK && _buffer.ack.clsID == CLASS_CFG && _buffer.ack.msgID == MSG_CFG_PRT) {
+            /* The GPS modules in the Entron 300 drones do not support CFG-PORT so we "guess" that
+             * the GPS is on port 1. Furthermore, it _does_ not know about a couple of other message
+             * types that we would like to auto-configure so we pretend that those are configured
+             * already. */
+            if (_ublox_port >= UBLOX_MAX_PORTS) {
+                _ublox_port = 1;
+            }
+
+            _unconfigured_messages &= ~(
+                CONFIG_RATE_NAV |
+                CONFIG_RATE_MON_HW |
+                CONFIG_RATE_MON_HW2 |
+                CONFIG_VERSION |
+                CONFIG_NAV_SETTINGS |
+                CONFIG_GNSS
+            );
+        }
+#endif
+
         Debug("ACK %u", (unsigned)_msg_id);
 
         if(_msg_id == MSG_ACK_ACK) {
@@ -1950,9 +1980,11 @@ AP_GPS_UBLOX::_save_cfg()
     _send_message(CLASS_CFG, MSG_CFG_CFG, &save_cfg, sizeof(save_cfg));
     _last_cfg_sent_time = AP_HAL::millis();
     _num_cfg_save_tries++;
+#ifndef COLLMOT_HACKS_ENTRON_300
     GCS_SEND_TEXT(MAV_SEVERITY_INFO,
                                      "GPS %d: u-blox saving config",
                                      state.instance + 1);
+#endif
 }
 
 /*

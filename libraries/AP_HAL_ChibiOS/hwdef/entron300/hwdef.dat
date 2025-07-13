@@ -1,0 +1,6 @@
+# The Entron 300 has a Pixhawk1, but we need to enable some drone-specific
+# hacks in the code
+
+include ../Pixhawk1/hwdef.dat
+
+define COLLMOT_HACKS_ENTRON_300

@@ -49,6 +49,7 @@ MAV_MODE GCS_MAVLINK_Copter::base_mode() const
     case Mode::Number::POSHOLD:
     case Mode::Number::BRAKE:
     case Mode::Number::SMART_RTL:
+    case Mode::Number::DRONE_SHOW:
         _base_mode |= MAV_MODE_FLAG_GUIDED_ENABLED;
         // note that MAV_MODE_FLAG_AUTO_ENABLED does not match what
         // APM does in any mode, as that is defined as "system finds its own goal
@@ -378,6 +379,14 @@ bool GCS_MAVLINK_Copter::try_send_message(enum ap_message id)
                 oadb->send_adsb_vehicle(chan, interval_ms);
             }
         }
+#endif
+        break;
+    }
+
+    case MSG_DRONE_SHOW_STATUS: {
+#if MODE_DRONE_SHOW_ENABLED == ENABLED
+        CHECK_PAYLOAD_SIZE(DATA16);
+        copter.g2.drone_show_manager.send_drone_show_status(chan);
 #endif
         break;
     }
@@ -848,6 +857,12 @@ MAV_RESULT GCS_MAVLINK_Copter::handle_command_int_packet(const mavlink_command_i
             return MAV_RESULT_ACCEPTED;
         }
         return MAV_RESULT_FAILED;
+#endif
+
+#if MODE_DRONE_SHOW_ENABLED == ENABLED
+    case MAV_CMD_USER_1:
+    case MAV_CMD_USER_2:
+        return copter.g2.drone_show_manager.handle_command_int_packet(packet);
 #endif
 
     default:
@@ -1511,6 +1526,19 @@ void GCS_MAVLINK_Copter::handle_message(const mavlink_message_t &msg)
         break;
 #endif
         
+#if MODE_DRONE_SHOW_ENABLED == ENABLED
+    case MAVLINK_MSG_ID_DATA16:
+    case MAVLINK_MSG_ID_DATA32:
+    case MAVLINK_MSG_ID_DATA64:
+    case MAVLINK_MSG_ID_DATA96:
+    case MAVLINK_MSG_ID_LED_CONTROL:
+        if (!copter.g2.drone_show_manager.handle_message(msg)) {
+            // also make sure to keep the original behaviour
+            GCS_MAVLINK::handle_message(msg);
+        }
+        break;
+#endif
+
     default:
         GCS_MAVLINK::handle_message(msg);
         break;
@@ -1553,6 +1581,9 @@ uint64_t GCS_MAVLINK_Copter::capabilities() const
             MAV_PROTOCOL_CAPABILITY_SET_ATTITUDE_TARGET |
 #if AP_TERRAIN_AVAILABLE
             (copter.terrain.enabled() ? MAV_PROTOCOL_CAPABILITY_TERRAIN : 0) |
+#endif
+#if MODE_DRONE_SHOW_ENABLED == ENABLED
+            0x4000000 | /* custom extension */
 #endif
             GCS_MAVLINK::capabilities());
 }
@@ -1657,3 +1688,16 @@ uint8_t GCS_MAVLINK_Copter::high_latency_wind_direction() const
     return 0;
 }
 #endif // HAL_HIGH_LATENCY2_ENABLED
+
+void GCS_MAVLINK_Copter::initialise_custom_message_intervals()
+{
+#if MODE_DRONE_SHOW_ENABLED == ENABLED
+    // In drone show mode, we start some additional telemetry automatically at
+    // startup so the GCS does not have to spend time on setting it up.
+    // 500000 us = 0.5 sec, i.e. 2 Hz
+    set_message_interval(MAVLINK_MSG_ID_DATA16, 500000);
+    set_message_interval(MAVLINK_MSG_ID_GLOBAL_POSITION_INT, 500000);
+    set_message_interval(MAVLINK_MSG_ID_SYS_STATUS, 1000000);
+    set_message_interval(MAVLINK_MSG_ID_GPS_RAW_INT, 1000000);
+#endif
+}
